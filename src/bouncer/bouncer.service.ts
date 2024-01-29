@@ -4,7 +4,7 @@ import { DatabaseService } from 'src/database/database.service'
 import { Telegraf, TelegramError } from 'telegraf'
 import { Chat, User } from 'telegraf/typings/core/types/typegram'
 
-const OVERRIDE_DELAY = 60 * 1000 // 60 seconds
+const OVERRIDE_DELAY = 5 * 1000 // 5 seconds
 const EXPECTED_OVERRIDE_ERROR = 'Bad Request: HIDE_REQUESTER_MISSING'
 
 @Injectable()
