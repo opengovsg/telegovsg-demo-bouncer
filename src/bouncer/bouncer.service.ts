@@ -55,25 +55,26 @@ export class BouncerService {
     botId: number,
     newChatMembers: User[],
   ) {
-    // Remove any users that join group through direct link instead of invite link
-    if (newChatMembers.some((user) => user.id === botId)) {
-      const inviteLink = await this.bot.telegram.createChatInviteLink(chatId, {
-        creates_join_request: true,
-      })
-      await this.databaseService.bouncerStore
-        .insertInto('chat')
-        .values({
-          name: chatTitle,
-          chat_id: chatId,
-          invite_link: inviteLink.invite_link,
-        })
-        .executeTakeFirst()
-      this.logger.log(`Bot added to chat ${chatTitle} with id ${chatId}`)
-      return
-    }
-
     for (const user of newChatMembers) {
       const { id: userId, first_name } = user
+      if (user.id === botId) {
+        const inviteLink = await this.bot.telegram.createChatInviteLink(
+          chatId,
+          {
+            creates_join_request: true,
+          },
+        )
+        await this.databaseService.bouncerStore
+          .insertInto('chat')
+          .values({
+            name: chatTitle,
+            chat_id: chatId,
+            invite_link: inviteLink.invite_link,
+          })
+          .executeTakeFirst()
+        this.logger.log(`Bot added to chat ${chatTitle} with id ${chatId}`)
+        continue
+      }
       const timeUntilBanLifted = new Date().getTime() + 1000 * 60
       const possibleUser = await this.databaseService.store.get(
         userId.toString(),
