@@ -7,6 +7,7 @@ import { AppModule } from './app.module'
 import { ConfigService } from '@nestjs/config'
 import { DatabaseService } from './database/database.service'
 import { session } from 'telegraf'
+import { executeMigration } from './database/utils/pg.utils'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
@@ -22,6 +23,7 @@ async function bootstrap() {
       getSessionKey: (ctx) => `${ctx.from.id}`,
     }),
   )
+  await executeMigration(databaseService.bouncerStore)
   app.use(bot.webhookCallback(configService.get<string>('bot.path')))
   await app.listen(3000)
 }

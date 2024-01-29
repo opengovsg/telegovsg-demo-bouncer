@@ -1,9 +1,16 @@
 import Pool from 'pg-pool'
-import { Kysely, PostgresDialect } from 'kysely'
+import {
+  Migrator,
+  FileMigrationProvider,
+  Kysely,
+  PostgresDialect,
+} from 'kysely'
 import { config } from 'dotenv'
 import { parse } from 'pg-connection-string'
 import { NoticeLoggingClient } from '../client/NoticeLoggingClient'
 import { BouncerDatabase } from '../types'
+import * as path from 'path'
+import { promises as fs } from 'fs'
 
 config()
 
@@ -71,4 +78,35 @@ export const generateDb = () => {
     }),
   })
   return { pool, db }
+}
+
+export const executeMigration = async (db: Kysely<BouncerDatabase>) => {
+  const migrator = new Migrator({
+    db,
+    provider: new FileMigrationProvider({
+      fs,
+      path,
+      migrationFolder: path.join(__dirname, '../migrations'),
+    }),
+  })
+
+  const { error, results } = await migrator.migrateToLatest()
+
+  results?.forEach((migrationResult) => {
+    if (migrationResult.status === 'Success') {
+      console.log(
+        `Migration "${migrationResult.migrationName}" was executed successfully`,
+      )
+    } else if (migrationResult.status === 'Error') {
+      console.error(
+        `Failed to execute migration "${migrationResult.migrationName}"`,
+      )
+    }
+  })
+
+  if (error) {
+    console.error('Failed to migrate')
+    console.error(error)
+    process.exit(1)
+  }
 }
