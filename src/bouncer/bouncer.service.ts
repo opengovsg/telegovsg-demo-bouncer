@@ -1,8 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { InjectBot } from 'nestjs-telegraf'
 import { DatabaseService } from 'src/database/database.service'
-import { Telegraf } from 'telegraf'
+import { Telegraf, TelegramError } from 'telegraf'
 import { Chat, User } from 'telegraf/typings/core/types/typegram'
+
+const OVERRIDE_DELAY = 60 * 1000 // 60 seconds
+const EXPECTED_OVERRIDE_ERROR = 'Bad Request: HIDE_REQUESTER_MISSING'
 
 @Injectable()
 export class BouncerService {
@@ -23,29 +26,60 @@ export class BouncerService {
   async handleNewChatMember(chat: Chat, user: User, userChatId: number) {
     const { id: chatId } = chat
     const { id: userId, first_name } = user
+    await this.bot.telegram.sendMessage(
+      chatId,
+      `User [${first_name}](tg://user?id=${userId}) is attempting to join the chat: please accept/reject in the next ${
+        OVERRIDE_DELAY / 1000
+      } seconds to override`,
+      {
+        parse_mode: 'Markdown',
+      },
+    )
+    await new Promise((res) => setTimeout(res, OVERRIDE_DELAY))
     const possibleUser = await this.databaseService.store.get(userId.toString())
-    if (possibleUser.poDetails && possibleUser.poDetails.length !== 0) {
-      // User is a public officer
-      await this.bot.telegram.approveChatJoinRequest(chatId, userId)
-      this.logger.log(
-        `Allowing user ${first_name} with id: ${userId} to join chat ${chatId}`,
-      )
-    } else {
-      await this.bot.telegram.declineChatJoinRequest(chatId, userId)
-      this.logger.log(
-        `User ${first_name} with id: ${userId} attempted to join chat ${chatId} without authorization: rejecting request`,
-      )
-      await this.bot.telegram.sendMessage(
-        chatId,
-        `User [${first_name}](tg://user?id=${userId}) attempted to join chat without authorization: rejecting request`,
-        {
-          parse_mode: 'Markdown',
-        },
-      )
-      await this.bot.telegram.sendMessage(
-        userChatId,
-        'Please verify your identity and join the group via the link provided! Use "/start" to begin',
-      )
+    try {
+      if (
+        possibleUser &&
+        possibleUser.poDetails &&
+        possibleUser.poDetails.length !== 0
+      ) {
+        // User is a public officer
+        await this.bot.telegram.approveChatJoinRequest(chatId, userId)
+        this.logger.log(
+          `Allowing user ${first_name} with id: ${userId} to join chat ${chatId}`,
+        )
+      } else {
+        await this.bot.telegram.declineChatJoinRequest(chatId, userId)
+        this.logger.log(
+          `User ${first_name} with id: ${userId} attempted to join chat ${chatId} without authorization: rejecting request`,
+        )
+        await this.bot.telegram.sendMessage(
+          chatId,
+          `User [${first_name}](tg://user?id=${userId}) attempted to join chat without authorization: rejecting request`,
+          {
+            parse_mode: 'Markdown',
+          },
+        )
+        await this.bot.telegram.sendMessage(
+          userChatId,
+          'Please verify your identity and join the group via the link provided! Use "/start" to begin',
+        )
+      }
+    } catch (err) {
+      if (
+        err instanceof TelegramError &&
+        err.description === EXPECTED_OVERRIDE_ERROR
+      ) {
+        await this.bot.telegram.sendMessage(
+          chatId,
+          `Join request overridden for User [${first_name}](tg://user?id=${userId})`,
+          {
+            parse_mode: 'Markdown',
+          },
+        )
+        return
+      }
+      throw err
     }
   }
 
