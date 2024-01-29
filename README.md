@@ -26,6 +26,15 @@ A template to build Telegram bots for Singapore Government public officers
 1. Create a new bot with [BotFather](https://t.me/botfather).
 2. Store the bot's security token in a safe location.
 
+### Using the bouncer bot
+
+Before the bouncer can be used, it must be added to the desired group as an admin.
+
+1. Start up telegov
+2. In the telegram group you wish to make use of the bouncer, click on the three dots > Manage group > Administrators > Add Administrator and look for your telegram bot
+3. The bot will create a new invite link for your group, and block entry of any new users which have not finished authentication. The invite links to any groups which you have added the bot to can be accessed via `/getInvite` for authenticated users.
+
+
 ### Create a Neon database
 
 1. Create a database with [Neon](https://console.neon.tech/app/projects).
@@ -120,11 +129,3 @@ $ npm run start:debug
 ```bash
 $ npm run lint
 ```
-
-### Using the bouncer bot
-
-Before the bouncer can be used, it must be added to the desired group as an admin.
-
-1. Start up telegov
-2. In the telegram group you wish to make use of the bouncer, click on the three dots > Manage group > Administrators > Add Administrator and look for your telegram bot
-3. The bot will create a new invite link for your group, and block entry of any new users which have not finished authentication. The invite links to any groups which you have added the bot to can be accessed via `/getInvite` for authenticated users.
