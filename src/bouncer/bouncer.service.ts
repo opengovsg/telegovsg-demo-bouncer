@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { InjectBot } from 'nestjs-telegraf'
 import { DatabaseService } from 'src/database/database.service'
 import { Telegraf } from 'telegraf'
@@ -6,6 +6,8 @@ import { Chat, User } from 'telegraf/typings/core/types/typegram'
 
 @Injectable()
 export class BouncerService {
+  private readonly logger = new Logger('TelegrafException')
+
   constructor(
     @InjectBot() private bot: Telegraf,
     private readonly databaseService: DatabaseService,
@@ -25,12 +27,12 @@ export class BouncerService {
     if (possibleUser.poDetails && possibleUser.poDetails.length !== 0) {
       // User is a public officer
       await this.bot.telegram.approveChatJoinRequest(chatId, userId)
-      console.log(
+      this.logger.log(
         `Allowing user ${first_name} with id: ${userId} to join chat ${chatId}`,
       )
     } else {
       await this.bot.telegram.declineChatJoinRequest(chatId, userId)
-      console.log(
+      this.logger.log(
         `User ${first_name} with id: ${userId} attempted to join chat ${chatId} without authorization: rejecting request`,
       )
       await this.bot.telegram.sendMessage(
@@ -66,7 +68,7 @@ export class BouncerService {
           invite_link: inviteLink.invite_link,
         })
         .executeTakeFirst()
-      console.log(`Bot added to chat ${chatTitle} with id ${chatId}`)
+      this.logger.log(`Bot added to chat ${chatTitle} with id ${chatId}`)
       return
     }
 
@@ -84,7 +86,7 @@ export class BouncerService {
           userId,
           timeUntilBanLifted,
         )
-        console.log(
+        this.logger.log(
           `User ${first_name} with id: ${userId} attempted to join chat ${chatId} via direct link: removing from group`,
         )
         await this.bot.telegram.sendMessage(

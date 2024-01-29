@@ -1,6 +1,6 @@
 import { Command, Ctx, On, Start, Update } from 'nestjs-telegraf'
 import { UserGuard } from '../user/guards/user.guard'
-import { UseGuards } from '@nestjs/common'
+import { Logger, UseGuards } from '@nestjs/common'
 import { UserContext } from '../user/user-context'
 import { BouncerService } from 'src/bouncer/bouncer.service'
 import { Context } from 'telegraf'
@@ -11,6 +11,8 @@ import {
 
 @Update()
 export class BotUpdate {
+  private readonly logger = new Logger('TelegrafException')
+
   constructor(private readonly bouncerService: BouncerService) {}
   @Start()
   @UseGuards(UserGuard)
@@ -46,7 +48,9 @@ export class BotUpdate {
           .join('\n')
       await ctx.replyWithHTML(message)
     } catch (err) {
-      console.log(`Error occurred when retrieving chat invite links: ${err}`)
+      this.logger.log(
+        `Error occurred when retrieving chat invite links: ${err}`,
+      )
     }
   }
 
@@ -56,7 +60,7 @@ export class BotUpdate {
     try {
       await this.bouncerService.handleNewChatMember(chat, user, userChatId)
     } catch (err) {
-      console.log(`Error when joining chat: ${err}`)
+      this.logger.log(`Error when joining chat: ${err}`)
     }
   }
 
@@ -86,7 +90,7 @@ export class BotUpdate {
         message.new_chat_members,
       )
     } catch (err) {
-      console.log(`Error when handling user joining chat: ${err}`)
+      this.logger.log(`Error when handling user joining chat: ${err}`)
     }
   }
 }
