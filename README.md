@@ -1,6 +1,6 @@
-# Telegov
+# Telegov Bouncer
 
-A template to build Telegram bots for Singapore Government public officers
+A bot that uses sgID to limit access to your group to Singapore Government public officers, deployable to Vercel
 
 ## Getting Started
 
@@ -18,27 +18,23 @@ A template to build Telegram bots for Singapore Government public officers
   in your [profile page](https://developer.id.gov.sg/profile).
 
 2. Create a new sgID client, with `NAME` and `PUBLIC OFFICER DETAILS` included in the scope.  
-   Store the secrets in a safe location.
+   Store the secrets in a [safe location](#storing-secrets).
 3. Add `http://localhost:3000/auth/sgid/callback` to the list of Redirect URLs.
 
 ### Create a Telegram bot
 
-1. Create a new bot with [BotFather](https://t.me/botfather).
-2. Store the bot's security token in a safe location.
-
-### Using the bouncer bot
-
-Before the bouncer can be used, it must be added to the desired group as an admin.
-
-1. Start up telegov
-2. In the telegram group you wish to make use of the bouncer, click on the three dots > Manage group > Administrators > Add Administrator and look for your telegram bot
-3. The bot will create a new invite link for your group, and block entry of any new users which have not finished authentication. The invite links to any groups which you have added the bot to can be accessed via `/getInvite` for authenticated users.
-
+1. Create a new bot by [obtaining a bot token](https://core.telegram.org/bots/tutorial#obtain-your-bot-token) from [BotFather](https://t.me/botfather).
+2. Store the bot's security token in a [safe location](#storing-secrets).
 
 ### Create a Neon database
 
 1. Create a database with [Neon](https://console.neon.tech/app/projects).
-2. Store the database's connection url in a safe location.
+2. Store the database's connection url in a [safe location](#storing-secrets).
+
+### Storing secrets
+Generally, we recommend the use of a password manager like [1Password](https://1password.com/) to store secrets.
+Many password managers would also feature the ability to share secrets within a team, which would be useful if 
+you are collaborating with others to build the bot.
 
 ### Deployment
 
@@ -49,6 +45,16 @@ Before the bouncer can be used, it must be added to the desired group as an admi
 3. Visit the [sgID Developer Portal](https://developer.id.gov.sg/dashboard) and add a Redirect URL bearing
    your deployed application's domain name.  
    It should be in the following format: `https://<project_name>-git-main-<your_github_handle>.vercel.app/auth/sgid/callback`
+
+### Using Telegov Bouncer
+
+Once the bot has been deployed, it should be added to the desired group as an admin so that it can start to moderate it.
+
+1. Start up telegov
+2. In the telegram group you wish to make use of the bouncer, click on the three dots > Manage group > Administrators > Add Administrator and look for your telegram bot
+3. The bot will create a new invite link for your group, and block entry of any new users which have not finished authentication. The invite links to any groups which you have added the bot to can be accessed via `/getInvite` for authenticated users.
+4. Direct your new users to the bouncer bot to obtain access to your group.
+
 
 ## Setting up local development environment
 
