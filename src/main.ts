@@ -23,7 +23,6 @@ async function bootstrap() {
       getSessionKey: (ctx) => `${ctx.from.id}`,
     }),
   )
-  await executeMigration(databaseService.bouncerStore)
   app.use(bot.webhookCallback(configService.get<string>('bot.path')))
   await app.listen(3000)
 }
