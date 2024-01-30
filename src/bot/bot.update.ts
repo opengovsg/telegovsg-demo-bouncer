@@ -24,6 +24,7 @@ export class BotUpdate {
       )
     }
     verifiedMessage.push(`\n/logout to log out`)
+    verifiedMessage.push(`\n/invites to retrieve invites`)
     await ctx.replyWithHTML(
       `<b>Authenticated Public Officer</b>\n\n${verifiedMessage.join('\n')}`,
     )
@@ -36,9 +37,9 @@ export class BotUpdate {
     await ctx.replyWithHTML('You have successfully logged out.')
   }
 
-  @Command('getInvite')
+  @Command('invites')
   @UseGuards(UserGuard)
-  async getInvite(@Ctx() ctx: UserContext) {
+  async onInvites(@Ctx() ctx: UserContext) {
     try {
       const groupInfo = await this.bouncerService.getGroups()
       const message =

@@ -89,6 +89,7 @@ export class AuthController {
         )
       }
       verifiedMessage.push(`\n/logout to log out`)
+      verifiedMessage.push(`\n/invites to retrieve invites`)
 
       const poDetails = authDetails.poDetails.map(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
